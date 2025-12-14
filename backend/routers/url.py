@@ -20,10 +20,9 @@ def generate_short_code(length=6):
     return ''.join(random.choices(chars, k=length))
 
 # Create a short URL
-@router.post("/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED
-async def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+@router.post("/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("1500/minute")
-def create_short_url(request: Request, url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user
+async def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     short_code = generate_short_code()
