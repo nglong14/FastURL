@@ -22,7 +22,7 @@ def generate_short_code(length=6):
 # Create a short URL
 @router.post("/", response_model=schemas.URLResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("1500/minute")
-async def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+async def create_short_url(request: Request, url: schemas.URLCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     short_code = generate_short_code()
@@ -46,7 +46,7 @@ async def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db)
 
 # Get all URLs for the current user
 @router.get("/", response_model=list[schemas.URLResponse])
-async def get_urls(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+async def get_urls(request: Request, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     
@@ -75,7 +75,7 @@ async def update_click_count(short_code: str, db: Session):
 
 # Redirect short URL
 @router.get("/r/{short_code}")
-async def redirect_short_url(short_code: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def redirect_short_url(request: Request, short_code: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # Try cache first
     cache_key = f"short_url:{short_code}"
     cached_url = await asyncio.to_thread(cache.get_cache, cache_key)
